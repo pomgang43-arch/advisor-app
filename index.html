@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Advisor Portal - ผดุงเสนา</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Advisor App">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/T31k1y70/images-(1).jpg">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style> 
+        body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; overflow: hidden; } 
+        .app-bg { background-image: url('https://i.postimg.cc/qB5RCSQ3/wth.png'); background-size: cover; background-position: center; }
+        ::-webkit-scrollbar { display: none; }
+        .page-section { display: none; height: 100%; overflow-y: auto; padding-bottom: 80px; }
+        .page-section.active { display: block; }
+    </style>
+</head>
+
+<body class="text-gray-800 antialiased flex justify-center h-screen w-screen">
+    
+    <div class="max-w-md w-full relative h-full flex flex-col bg-gray-50 shadow-xl overflow-hidden">
+        
+        <div class="bg-indigo-600 text-white p-4 shadow-md z-20 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-semibold">ระบบที่ปรึกษา</h1>
+                <p class="text-xs text-indigo-200" id="headerDate">กำลังโหลด...</p>
+            </div>
+            <button onclick="loadData()" class="bg-indigo-500 hover:bg-indigo-400 p-2 rounded-full text-xs transition">🔄 รีเฟรช</button>
+        </div>
+
+        <div id="statusMsg" class="bg-yellow-100 text-yellow-800 text-xs text-center py-1 hidden z-20 shadow-sm">กำลังเชื่อมต่อข้อมูล...</div>
+
+        <div id="page-dashboard" class="page-section active p-4">
+            <div id="report-area" class="relative p-6 rounded-2xl shadow-sm border border-gray-200 overflow-hidden app-bg">
+                <div class="absolute inset-0 bg-white/85 backdrop-blur-sm"></div>
+                <div class="relative z-10">
+                    <div class="text-center mb-5">
+                        <img src="https://i.postimg.cc/T31k1y70/images-(1).jpg" 
+                             onclick="saveAsImage()" 
+                             class="w-20 h-auto mx-auto mb-2 drop-shadow-lg cursor-pointer hover:scale-110 transition-transform" 
+                             title="คลิกโลโก้เพื่อบันทึกรายงาน" alt="โลโก้">
+                        
+                        <h1 class="text-xl font-semibold text-gray-900">สรุปการเข้าเรียน</h1>
+			<h1 class="text-xl font-semibold text-gray-800">ชั้น ปวช.2/1 สาขาการบัญชี</h1>
+                        <p class="text-sm text-gray-800 font-medium">วิทยาลัยเทคโนโลยีผดุงเสนาบริหารธุรกิจ</p>
+                        <p class="text-[10px] text-indigo-600 font-bold mt-1">(คลิกโลโก้เพื่อบันทึกรูปภาพ)</p>
+                        
+                        <div class="inline-block bg-indigo-50 px-3 py-1.5 rounded-lg text-xs text-indigo-700 font-semibold mt-3 border border-indigo-100">
+                            <span id="displayDate">วันที่ --</span> | ⏰ <span id="displayTime">--:--</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-5">
+                        <div class="bg-white/95 p-3 rounded-xl text-center shadow-sm border border-gray-100"><span class="block text-xs text-gray-500 font-medium">ทั้งหมด</span><span class="text-2xl font-semibold text-gray-800" id="sumTotal">0</span></div>
+                        <div class="bg-green-50/95 p-3 rounded-xl text-center shadow-sm border border-green-100"><span class="block text-xs text-green-600 font-medium">มาปกติ</span><span class="text-2xl font-semibold text-green-700" id="sumPresent">0</span></div>
+                        <div class="bg-orange-50/95 p-3 rounded-xl text-center shadow-sm border border-orange-100"><span class="block text-xs text-orange-600 font-medium">มาสาย</span><span class="text-2xl font-semibold text-orange-600" id="sumLate">0</span></div>
+                        <div class="bg-red-50/95 p-3 rounded-xl text-center shadow-sm border border-red-100"><span class="block text-xs text-red-600 font-medium">ขาดเรียน</span><span class="text-2xl font-semibold text-red-600" id="sumAbsent">0</span></div>
+                    </div>
+                    
+                    <div class="bg-white/95 rounded-xl p-4 shadow-sm border border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-800 border-b border-gray-200 pb-2 mb-3">⚠️ รายชื่อที่ต้องติดตาม (เดือนนี้)</h2>
+                        <div class="mb-4">
+                            <span class="text-[10px] font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded shadow-sm">สาย</span>
+                            <div class="text-xs text-gray-700 mt-2 space-y-1 pl-1" id="listLate">- ไม่มี -</div>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded shadow-sm">ขาด</span>
+                            <div class="text-xs text-gray-700 mt-2 space-y-1 pl-1" id="listAbsent">- ไม่มี -</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-checkin" class="page-section p-4">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3 flex justify-between items-center">
+                📝 เช็คชื่อเข้าเรียน
+                <span class="text-xs font-normal text-gray-500 bg-gray-200 px-2 py-1 rounded-full" id="checkinCount">0 คน</span>
+            </h2>
+            <div id="studentListContainer" class="space-y-3">
+                </div>
+        </div>
+
+        <div id="page-behavior" class="page-section p-4 flex flex-col justify-center min-h-[80%]">
+            <div class="bg-white p-5 rounded-2xl shadow-md border border-gray-100">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">🌟 บันทึกพฤติกรรม</h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">เลือกนักศึกษา</label>
+                    <select id="behStudent" class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                        <option value="">-- กำลังโหลดรายชื่อ --</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ประเภทพฤติกรรม</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center justify-center gap-2 border border-gray-200 p-3 rounded-xl cursor-pointer hover:bg-green-50 transition has-[:checked]:bg-green-100 has-[:checked]:border-green-500 has-[:checked]:text-green-700 font-medium">
+                            <input type="radio" name="behType" value="เชิงบวก" class="hidden" checked> ⭐ เชิงบวก
+                        </label>
+                        <label class="flex items-center justify-center gap-2 border border-gray-200 p-3 rounded-xl cursor-pointer hover:bg-red-50 transition has-[:checked]:bg-red-100 has-[:checked]:border-red-500 has-[:checked]:text-red-700 font-medium">
+                            <input type="radio" name="behType" value="เชิงลบ" class="hidden"> ⚠️ เชิงลบ
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">รายละเอียดพฤติกรรม</label>
+                    <textarea id="behDetail" rows="3" class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="ระบุรายละเอียด..."></textarea>
+                </div>
+
+                <button onclick="submitBehavior()" id="btnSubmitBeh" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3.5 rounded-xl shadow-sm transition">💾 บันทึกข้อมูล</button>
+            </div>
+        </div>
+
+        <div class="absolute bottom-0 w-full bg-white border-t border-gray-200 flex justify-around p-2 pb-5 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
+            <button onclick="switchTab('dashboard')" class="nav-btn active flex flex-col items-center p-2 text-gray-400 w-1/3" data-target="page-dashboard">
+                <span class="text-xl mb-1">📊</span><span class="text-[10px] font-medium">สรุปผล</span>
+            </button>
+            <button onclick="switchTab('checkin')" class="nav-btn flex flex-col items-center p-2 text-gray-400 w-1/3" data-target="page-checkin">
+                <span class="text-xl mb-1">📝</span><span class="text-[10px] font-medium">เช็คชื่อ</span>
+            </button>
+            <button onclick="switchTab('behavior')" class="nav-btn flex flex-col items-center p-2 text-gray-400 w-1/3" data-target="page-behavior">
+                <span class="text-xl mb-1">🌟</span><span class="text-[10px] font-medium">พฤติกรรม</span>
+            </button>
+        </div>
+
+    </div>
+
+    <style>
+        .nav-btn.active { color: #4f46e5; }
+        .nav-btn.active span:first-child { transform: scale(1.1); font-weight: bold; }
+    </style>
+
+    <script>
+        // 🔴 ลิงก์ API ของแอปอาจารย์
+        const API_URL = "https://script.google.com/macros/s/AKfycbzQxwpYBq3LkGfaT65J4ROOX6lUqCxsTSq0vnjwOGD7unROlPsZ6j6dIiJue2VuaZ7T/exec";
+        
+        let allStudents = [];
+        let todayStr = new Date().toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        
+        // อัปเดตเวลาและวันที่
+        function updateClock() {
+            let now = new Date();
+            document.getElementById('headerDate').innerText = now.toLocaleDateString('th-TH', { dateStyle: 'full' });
+            document.getElementById('displayDate').innerText = now.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+            document.getElementById('displayTime').innerText = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
+        }
+        setInterval(updateClock, 60000); updateClock();
+
+        // สลับหน้าจอ
+        function switchTab(tabName) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('page-' + tabName).classList.add('active');
+            document.querySelector(`.nav-btn[data-target="page-${tabName}"]`).classList.add('active');
+        }
+
+        function showStatus(msg, isError = false) {
+            let statusEl = document.getElementById('statusMsg');
+            statusEl.innerText = msg;
+            statusEl.className = isError ? 'bg-red-100 text-red-800 text-xs text-center py-1 z-20 shadow-sm' : 'bg-yellow-100 text-yellow-800 text-xs text-center py-1 z-20 shadow-sm';
+            statusEl.classList.remove('hidden');
+            if(!isError && msg === "") statusEl.classList.add('hidden');
+        }
+
+        // โหลดข้อมูลนักศึกษา
+        async function loadData() {
+            showStatus("กำลังดึงข้อมูลรายชื่อและสถิติ...");
+            try {
+                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getStudentsData' }) });
+                let result = await res.json();
+                if(result.success) {
+                    allStudents = result.data;
+                    renderCheckInList();
+                    renderDashboardList();
+                    renderBehaviorDropdown();
+                    showStatus("");
+                } else { showStatus("โหลดข้อมูลล้มเหลว", true); }
+            } catch(e) { showStatus("ไม่สามารถเชื่อมต่อฐานข้อมูลได้", true); }
+        }
+
+        // วาดหน้าเช็คชื่อ
+        function renderCheckInList() {
+            let container = document.getElementById('studentListContainer');
+            document.getElementById('checkinCount').innerText = allStudents.length + ' คน';
+            container.innerHTML = '';
+            
+            allStudents.forEach((st, index) => {
+                let div = document.createElement('div');
+                div.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-medium text-gray-900 text-sm">${index+1}. ${st.name}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">รหัส: ${st.id}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="markStatus('${st.id}', '${st.name}', 'มาปกติ', this)" class="btn-status py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-700 transition">มาปกติ</button>
+                        <button onclick="markStatus('${st.id}', '${st.name}', 'มาสาย', this)" class="btn-status py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-orange-100 hover:text-orange-700 transition">สาย</button>
+                        <button onclick="markStatus('${st.id}', '${st.name}', 'ลา', this)" class="btn-status py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700 transition">ลา</button>
+                        <button onclick="markStatus('${st.id}', '${st.name}', 'ขาดเรียน', this)" class="btn-status py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700 transition">ขาด</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // บันทึกการเข้าเรียน
+        async function markStatus(id, name, status, btnElement) {
+            let parentDiv = btnElement.parentElement;
+            parentDiv.querySelectorAll('.btn-status').forEach(b => {
+                b.classList.remove('ring-2', 'ring-offset-1', 'bg-green-100', 'bg-orange-100', 'bg-blue-100', 'bg-red-100');
+                b.classList.add('bg-gray-100', 'text-gray-600');
+            });
+
+            btnElement.classList.remove('bg-gray-100', 'text-gray-600');
+            if(status === 'มาปกติ') btnElement.classList.add('bg-green-100', 'text-green-700', 'ring-2', 'ring-green-400');
+            if(status === 'มาสาย') btnElement.classList.add('bg-orange-100', 'text-orange-700', 'ring-2', 'ring-orange-400');
+            if(status === 'ลา') btnElement.classList.add('bg-blue-100', 'text-blue-700', 'ring-2', 'ring-blue-400');
+            if(status === 'ขาดเรียน') btnElement.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-400');
+
+            showStatus(`กำลังบันทึก: ${name} -> ${status}`);
+            try {
+                let res = await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'saveAttendanceRecord', date: todayStr, id: id, name: name, status: status }) 
+                });
+                let result = await res.json();
+                if(result.success) showStatus("");
+                else showStatus("บันทึกไม่สำเร็จ", true);
+            } catch(e) { showStatus("การเชื่อมต่อมีปัญหา", true); }
+        }
+
+        // วาดหน้า Dashboard
+        function renderDashboardList() {
+            document.getElementById('sumTotal').innerText = allStudents.length;
+            
+            let lateList = [], absentList = [];
+            allStudents.forEach(st => {
+                if(st.stats.lateMonth > 0) lateList.push(`${st.name} (${st.stats.lateMonth} ครั้ง)`);
+                if(st.stats.absentMonth > 0) absentList.push(`${st.name} (${st.stats.absentMonth} ครั้ง)`);
+            });
+
+            document.getElementById('listLate').innerHTML = lateList.length > 0 ? lateList.join('<br>') : '- ไม่มี -';
+            document.getElementById('listAbsent').innerHTML = absentList.length > 0 ? absentList.join('<br>') : '- ไม่มี -';
+            
+            // หมายเหตุ: สถิติ มาปกติ, สาย, ขาด ของ "วันนี้" จะต้องดึงข้อมูลแบบ Realtime ซึ่งใน Dashboard นี้จะโชว์ภาพรวมสรุปรายเดือนแทน
+        }
+
+        // จัดการ Dropdown พฤติกรรม
+        function renderBehaviorDropdown() {
+            let select = document.getElementById('behStudent');
+            select.innerHTML = '<option value="">-- เลือกรายชื่อนักศึกษา --</option>';
+            allStudents.forEach(st => {
+                let opt = document.createElement('option');
+                opt.value = st.id; opt.innerText = `${st.id} - ${st.name}`;
+                select.appendChild(opt);
+            });
+        }
+
+        // บันทึกพฤติกรรม
+        async function submitBehavior() {
+            let id = document.getElementById('behStudent').value;
+            let type = document.querySelector('input[name="behType"]:checked').value;
+            let detail = document.getElementById('behDetail').value;
+            let btn = document.getElementById('btnSubmitBeh');
+
+            if(!id || !detail) { alert("กรุณาเลือกนักศึกษาและกรอกรายละเอียดให้ครบถ้วน"); return; }
+
+            btn.innerText = "กำลังบันทึก..."; btn.disabled = true;
+            try {
+                let res = await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'saveBehaviorRecord', id: id, type: type, detail: detail }) 
+                });
+                let result = await res.json();
+                if(result.success) {
+                    alert("บันทึกพฤติกรรมสำเร็จ!");
+                    document.getElementById('behDetail').value = '';
+                    document.getElementById('behStudent').value = '';
+                } else alert("เกิดข้อผิดพลาด");
+            } catch(e) { alert("เครือข่ายมีปัญหา"); }
+            btn.innerHTML = "💾 บันทึกข้อมูล"; btn.disabled = false;
+        }
+
+        // บันทึกรูป Dashboard
+        function saveAsImage() {
+            let target = document.getElementById("report-area");
+            let originalScale = target.style.transform;
+            target.style.transform = "scale(1)";
+            
+            html2canvas(target, { scale: 2, useCORS: true, backgroundColor: null }).then(canvas => {
+                let link = document.createElement('a');
+                link.download = `รายงานการเข้าเรียน_${todayStr.replace(/\//g, '-')}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                target.style.transform = originalScale;
+            });
+        }
+
+        // เริ่มต้นทำงาน
+        window.onload = () => { loadData(); };
+
+        // เปิดการทำงาน PWA Service Worker
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+    </script>
+</body>
+</html>
