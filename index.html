@@ -17,6 +17,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style> 
         body { 
@@ -87,6 +88,11 @@
                             <div class="mb-4"><span class="text-[10px] font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded shadow-sm">สาย</span><div class="text-xs text-gray-700 mt-2 space-y-1 pl-1" id="listLate">- ไม่มี -</div></div>
                             <div><span class="text-[10px] font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded shadow-sm">ขาด</span><div class="text-xs text-gray-700 mt-2 space-y-1 pl-1" id="listAbsent">- ไม่มี -</div></div>
                         </div>
+                        
+                        <button onclick="exportToExcel()" class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-xl shadow-sm transition flex items-center justify-center gap-2 border border-green-500">
+                            <span class="text-xl">📊</span> ส่งออกข้อมูลเป็นไฟล์ Excel
+                        </button>
+
                     </div>
                 </div>
             </div>
@@ -333,6 +339,48 @@
 
         function showLoading(text) { document.getElementById('loadingText').innerText = text; document.getElementById('loadingOverlay').style.display = 'flex'; }
         function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+        // ฟังก์ชันส่งออกไฟล์ Excel
+        function exportToExcel() {
+            if (globalStudents.length === 0) {
+                alert("ยังโหลดข้อมูลไม่เสร็จ กรุณารอสักครู่...");
+                return;
+            }
+            
+            showLoading("กำลังสร้างไฟล์ Excel...");
+            
+            // เตรียมข้อมูลเพื่อลงตาราง Excel
+            let exportData = globalStudents.map((student, index) => {
+                let statusSelect = document.getElementById('status_' + student.id);
+                let todayStatus = statusSelect ? statusSelect.value : 'มาปกติ';
+                
+                return {
+                    "ลำดับ": index + 1,
+                    "รหัสนักศึกษา": student.id,
+                    "ชื่อ-นามสกุล": student.name,
+                    "สถานะวันนี้": todayStatus,
+                    "สาย (เดือนนี้)": student.stats.lateMonth,
+                    "ขาด (เดือนนี้)": student.stats.absentMonth,
+                    "รวมสาย (ทั้งหมด)": student.stats.lateTotal,
+                    "รวมขาด (ทั้งหมด)": student.stats.absentTotal,
+                    "เบอร์โทรนักศึกษา": student.phone || '-',
+                    "ผู้ปกครอง": student.parent || '-',
+                    "เบอร์โทรผู้ปกครอง": student.parentPhone || '-'
+                };
+            });
+
+            // สั่งสร้างและดาวน์โหลดไฟล์
+            setTimeout(() => {
+                let worksheet = XLSX.utils.json_to_sheet(exportData);
+                let workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "สถิติการเข้าเรียน");
+
+                let dateStr = new Date().toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+                // ตั้งชื่อไฟล์ที่จะดาวน์โหลด
+                XLSX.writeFile(workbook, `สถิติเข้าเรียน_ผดุงเสนา_${dateStr}.xlsx`);
+                
+                hideLoading();
+            }, 500); // หน่วงเวลาให้เห็นหน้าโหลดข้อมูลนิดนึง
+        }
 
         // เปิดการทำงาน Service Worker สำหรับติดตั้งแอปลงเครื่อง
         if ('serviceWorker' in navigator) {
