@@ -3,316 +3,341 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Advisor Portal - ผดุงเสนา</title>
+    <title>ระบบที่ปรึกษา - ผดุงเสนาบริหารธุรกิจ</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Advisor App">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/T31k1y70/images-(1).jpg">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/T31k1y70/images-(1).jpg">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="white">
+    <meta name="apple-mobile-web-app-title" content="Advisor App">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style> 
-        body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; overflow: hidden; } 
-        .app-bg { background-image: url('https://i.postimg.cc/qB5RCSQ3/wth.png'); background-size: cover; background-position: center; }
+        body { 
+            font-family: 'Prompt', sans-serif; 
+            background-color: #d1d5db; /* 💻 สีพื้นหลังด้านนอกแอป */
+        } 
+        
+        /* 📱 ภาพพื้นหลังเฉพาะในกรอบแอปมือถือ */
+        .app-frame { 
+            background-image: url('https://i.postimg.cc/qB5RCSQ3/wth.png'); 
+            background-size: cover; 
+            background-position: center; 
+        }
+
         ::-webkit-scrollbar { display: none; }
-        .page-section { display: none; height: 100%; overflow-y: auto; padding-bottom: 80px; }
-        .page-section.active { display: block; }
+        .pb-nav { padding-bottom: 80px; }
+        
+        #loadingOverlay {
+            display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); z-index: 100; justify-content: center; align-items: center; flex-direction: column;
+        }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 
-<body class="text-gray-800 antialiased flex justify-center h-screen w-screen">
+<body class="text-gray-800 antialiased flex justify-center h-screen overflow-hidden">
     
-    <div class="max-w-md w-full relative h-full flex flex-col bg-gray-50 shadow-xl overflow-hidden">
+    <div id="loadingOverlay"><div class="spinner mb-3"></div><p class="text-sm text-gray-600 font-medium" id="loadingText">กำลังโหลดข้อมูล...</p></div>
+
+    <div class="max-w-md w-full relative h-full flex flex-col app-frame shadow-[0_0_40px_rgba(0,0,0,0.15)]">
         
-        <div class="bg-indigo-600 text-white p-4 shadow-md z-20 flex justify-between items-center">
-            <div>
-                <h1 class="text-lg font-semibold">ระบบที่ปรึกษา</h1>
-                <p class="text-xs text-indigo-200" id="headerDate">กำลังโหลด...</p>
-            </div>
-            <button onclick="loadData()" class="bg-indigo-500 hover:bg-indigo-400 p-2 rounded-full text-xs transition">🔄 รีเฟรช</button>
-        </div>
+        <div class="absolute inset-0 bg-white/40 backdrop-blur-[2px] z-0"></div>
 
-        <div id="statusMsg" class="bg-yellow-100 text-yellow-800 text-xs text-center py-1 hidden z-20 shadow-sm">กำลังเชื่อมต่อข้อมูล...</div>
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-nav relative z-10" id="main-content">
 
-        <div id="page-dashboard" class="page-section active p-4">
-            <div id="report-area" class="relative p-6 rounded-2xl shadow-sm border border-gray-200 overflow-hidden app-bg">
-                <div class="absolute inset-0 bg-white/85 backdrop-blur-sm"></div>
-                <div class="relative z-10">
-                    <div class="text-center mb-5">
-                        <img src="https://i.postimg.cc/T31k1y70/images-(1).jpg" 
-                             onclick="saveAsImage()" 
-                             class="w-20 h-auto mx-auto mb-2 drop-shadow-lg cursor-pointer hover:scale-110 transition-transform" 
-                             title="คลิกโลโก้เพื่อบันทึกรายงาน" alt="โลโก้">
-                        
-                        <h1 class="text-xl font-semibold text-gray-900">สรุปการเข้าเรียน</h1>
-			<h1 class="text-xl font-semibold text-gray-800">ชั้น ปวช.2/1 สาขาการบัญชี</h1>
-                        <p class="text-sm text-gray-800 font-medium">วิทยาลัยเทคโนโลยีผดุงเสนาบริหารธุรกิจ</p>
-                        <p class="text-[10px] text-indigo-600 font-bold mt-1">(คลิกโลโก้เพื่อบันทึกรูปภาพ)</p>
-                        
-                        <div class="inline-block bg-indigo-50 px-3 py-1.5 rounded-lg text-xs text-indigo-700 font-semibold mt-3 border border-indigo-100">
-                            <span id="displayDate">วันที่ --</span> | ⏰ <span id="displayTime">--:--</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 mb-5">
-                        <div class="bg-white/95 p-3 rounded-xl text-center shadow-sm border border-gray-100"><span class="block text-xs text-gray-500 font-medium">ทั้งหมด</span><span class="text-2xl font-semibold text-gray-800" id="sumTotal">0</span></div>
-                        <div class="bg-green-50/95 p-3 rounded-xl text-center shadow-sm border border-green-100"><span class="block text-xs text-green-600 font-medium">มาปกติ</span><span class="text-2xl font-semibold text-green-700" id="sumPresent">0</span></div>
-                        <div class="bg-orange-50/95 p-3 rounded-xl text-center shadow-sm border border-orange-100"><span class="block text-xs text-orange-600 font-medium">มาสาย</span><span class="text-2xl font-semibold text-orange-600" id="sumLate">0</span></div>
-                        <div class="bg-red-50/95 p-3 rounded-xl text-center shadow-sm border border-red-100"><span class="block text-xs text-red-600 font-medium">ขาดเรียน</span><span class="text-2xl font-semibold text-red-600" id="sumAbsent">0</span></div>
-                    </div>
-                    
-                    <div class="bg-white/95 rounded-xl p-4 shadow-sm border border-gray-200">
-                        <h2 class="text-sm font-medium text-gray-800 border-b border-gray-200 pb-2 mb-3">⚠️ รายชื่อที่ต้องติดตาม (เดือนนี้)</h2>
-                        <div class="mb-4">
-                            <span class="text-[10px] font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded shadow-sm">สาย</span>
-                            <div class="text-xs text-gray-700 mt-2 space-y-1 pl-1" id="listLate">- ไม่มี -</div>
-                        </div>
-                        <div>
-                            <span class="text-[10px] font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded shadow-sm">ขาด</span>
-                            <div class="text-xs text-gray-700 mt-2 space-y-1 pl-1" id="listAbsent">- ไม่มี -</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="page-checkin" class="page-section p-4">
-            <h2 class="text-lg font-semibold text-gray-800 mb-3 flex justify-between items-center">
-                📝 เช็คชื่อเข้าเรียน
-                <span class="text-xs font-normal text-gray-500 bg-gray-200 px-2 py-1 rounded-full" id="checkinCount">0 คน</span>
-            </h2>
-            <div id="studentListContainer" class="space-y-3">
-                </div>
-        </div>
-
-        <div id="page-behavior" class="page-section p-4 flex flex-col justify-center min-h-[80%]">
-            <div class="bg-white p-5 rounded-2xl shadow-md border border-gray-100">
-                <h2 class="text-lg font-semibold text-gray-800 mb-4">🌟 บันทึกพฤติกรรม</h2>
+            <div id="page-dashboard" class="page-section">
                 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">เลือกนักศึกษา</label>
-                    <select id="behStudent" class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-                        <option value="">-- กำลังโหลดรายชื่อ --</option>
-                    </select>
-                </div>
+                <div id="report-area" class="relative p-6 rounded-2xl shadow-sm border border-gray-100 overflow-hidden bg-cover bg-center" style="background-image: url('https://i.postimg.cc/qB5RCSQ3/wth.png');">
+                    <div class="absolute inset-0 bg-white/85 backdrop-blur-sm"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="text-center mb-5">
+                            <img src="https://i.postimg.cc/T31k1y70/images-(1).jpg" 
+                                 onclick="saveAsImage()" 
+                                 class="w-20 h-auto mx-auto mb-3 drop-shadow-lg cursor-pointer hover:scale-110 transition-transform duration-300" 
+                                 title="คลิกโลโก้เพื่อบันทึกรายงาน"
+                                 alt="โลโก้">
+                            
+                            <h1 class="text-xl font-semibold text-gray-900">สรุปการเข้าเรียน</h1>
+                            <h1 class="text-xl font-semibold text-gray-800">ชั้นปวช.2/1 สาขาการบัญชี</h1>
+                            <p class="text-sm text-gray-800 font-medium">วิทยาลัยเทคโนโลยีผดุงเสนาบริหารธุรกิจ</p>
+                            <p class="text-[10px] text-indigo-600 font-bold mt-1">(คลิกโลโก้เพื่อบันทึกรูปภาพ)</p> 
+                            <div class="inline-block bg-indigo-600/10 px-3 py-1.5 rounded-lg text-xs text-indigo-700 font-semibold mt-3 border border-indigo-200">
+                                <span id="displayDate">วันที่ --</span> | ⏰ <span id="displayTime">--:--</span>
+                            </div>
+                        </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">ประเภทพฤติกรรม</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center justify-center gap-2 border border-gray-200 p-3 rounded-xl cursor-pointer hover:bg-green-50 transition has-[:checked]:bg-green-100 has-[:checked]:border-green-500 has-[:checked]:text-green-700 font-medium">
-                            <input type="radio" name="behType" value="เชิงบวก" class="hidden" checked> ⭐ เชิงบวก
-                        </label>
-                        <label class="flex items-center justify-center gap-2 border border-gray-200 p-3 rounded-xl cursor-pointer hover:bg-red-50 transition has-[:checked]:bg-red-100 has-[:checked]:border-red-500 has-[:checked]:text-red-700 font-medium">
-                            <input type="radio" name="behType" value="เชิงลบ" class="hidden"> ⚠️ เชิงลบ
-                        </label>
+                        <div class="grid grid-cols-2 gap-3 mb-5">
+                            <div class="bg-white/90 p-3 rounded-xl text-center shadow-sm"><span class="block text-xs text-gray-500 font-medium">ทั้งหมด</span><span class="text-2xl font-semibold text-gray-800" id="sumTotal">0</span></div>
+                            <div class="bg-green-50/90 p-3 rounded-xl text-center shadow-sm border border-green-100"><span class="block text-xs text-green-600 font-medium">มาปกติ</span><span class="text-2xl font-semibold text-green-700" id="sumPresent">0</span></div>
+                            <div class="bg-orange-50/90 p-3 rounded-xl text-center shadow-sm border border-orange-100"><span class="block text-xs text-orange-600 font-medium">มาสาย</span><span class="text-2xl font-semibold text-orange-600" id="sumLate">0</span></div>
+                            <div class="bg-red-50/90 p-3 rounded-xl text-center shadow-sm border border-red-100"><span class="block text-xs text-red-600 font-medium">ขาดเรียน</span><span class="text-2xl font-semibold text-red-600" id="sumAbsent">0</span></div>
+                        </div>
+                        
+                        <div class="bg-white/90 rounded-xl p-4 shadow-sm border border-gray-200">
+                            <h2 class="text-sm font-medium text-gray-800 border-b border-gray-200 pb-2 mb-3">⚠️ รายชื่อที่ต้องติดตาม</h2>
+                            <div class="mb-4"><span class="text-[10px] font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded shadow-sm">สาย</span><div class="text-xs text-gray-700 mt-2 space-y-1 pl-1" id="listLate">- ไม่มี -</div></div>
+                            <div><span class="text-[10px] font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded shadow-sm">ขาด</span><div class="text-xs text-gray-700 mt-2 space-y-1 pl-1" id="listAbsent">- ไม่มี -</div></div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">รายละเอียดพฤติกรรม</label>
-                    <textarea id="behDetail" rows="3" class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="ระบุรายละเอียด..."></textarea>
-                </div>
-
-                <button onclick="submitBehavior()" id="btnSubmitBeh" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3.5 rounded-xl shadow-sm transition">💾 บันทึกข้อมูล</button>
             </div>
+            
+            <div id="page-attendance" class="page-section hidden relative min-h-full pb-20">
+                <div class="mb-5 border-b pb-3 border-gray-300">
+                    <h1 class="text-xl font-semibold text-gray-900 drop-shadow-sm">เช็กชื่อประจำวัน</h1>
+                    <p class="text-sm text-indigo-700 font-medium mt-1">อัปเดตสถานะล่าสุดได้ตลอดวัน</p>
+                </div>
+                <div class="space-y-3" id="attendanceListContainer"></div>
+                <div class="sticky bottom-2 mt-6 z-10">
+                    <button onclick="submitAttendance()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-4 rounded-xl shadow-lg transition-colors border border-indigo-500">💾 บันทึกการเข้าเรียน</button>
+                </div>
+            </div>
+
+            <div id="page-students" class="page-section hidden">
+                <div class="mb-4">
+                    <h1 class="text-xl font-semibold text-gray-900 drop-shadow-sm">ทำเนียบนักศึกษา</h1>
+                    <p class="text-sm text-gray-700">คลิกที่รายชื่อเพื่อดูสถิติและบันทึกพฤติกรรม</p>
+                </div>
+                <input type="text" id="searchInput" onkeyup="filterStudents()" placeholder="ค้นหาชื่อ หรือ รหัส..." class="w-full mb-5 bg-white/90 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+                <div class="grid grid-cols-2 gap-3" id="studentCardContainer"></div>
+            </div>
+
         </div>
 
-        <div class="absolute bottom-0 w-full bg-white border-t border-gray-200 flex justify-around p-2 pb-5 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
-            <button onclick="switchTab('dashboard')" class="nav-btn active flex flex-col items-center p-2 text-gray-400 w-1/3" data-target="page-dashboard">
-                <span class="text-xl mb-1">📊</span><span class="text-[10px] font-medium">สรุปผล</span>
-            </button>
-            <button onclick="switchTab('checkin')" class="nav-btn flex flex-col items-center p-2 text-gray-400 w-1/3" data-target="page-checkin">
-                <span class="text-xl mb-1">📝</span><span class="text-[10px] font-medium">เช็คชื่อ</span>
-            </button>
-            <button onclick="switchTab('behavior')" class="nav-btn flex flex-col items-center p-2 text-gray-400 w-1/3" data-target="page-behavior">
-                <span class="text-xl mb-1">🌟</span><span class="text-[10px] font-medium">พฤติกรรม</span>
-            </button>
+        <div class="absolute bottom-0 w-full bg-white/90 border-t border-gray-200 px-6 py-3 flex justify-between items-center rounded-t-2xl shadow-[0_-4px_15px_-1px_rgba(0,0,0,0.08)] z-40 backdrop-blur-md">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="flex flex-col items-center text-indigo-600 transition-colors w-16"><span class="text-2xl mb-1">📊</span><span class="text-[10px] font-medium">สรุปผล</span></button>
+            <button onclick="switchTab('attendance')" id="tab-attendance" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 transition-colors w-16"><span class="text-2xl mb-1">📝</span><span class="text-[10px] font-medium">เช็กชื่อ</span></button>
+            <button onclick="switchTab('students')" id="tab-students" class="flex flex-col items-center text-gray-500 hover:text-indigo-600 transition-colors w-16"><span class="text-2xl mb-1">👨‍🎓</span><span class="text-[10px] font-medium">ทำเนียบ</span></button>
         </div>
-
     </div>
 
-    <style>
-        .nav-btn.active { color: #4f46e5; }
-        .nav-btn.active span:first-child { transform: scale(1.1); font-weight: bold; }
-    </style>
+    <div id="studentModal" class="hidden fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm transition-opacity">
+        <div class="bg-white/95 backdrop-blur-md w-full max-w-md rounded-t-3xl p-6 transform transition-transform translate-y-0 flex flex-col" style="max-height: 90vh;">
+            <div class="flex justify-between items-start mb-4 shrink-0 border-b pb-4">
+                <div class="flex items-center gap-3">
+                    <div id="modalAvatar" class="w-12 h-12 bg-indigo-100 text-indigo-500 rounded-full flex items-center justify-center font-semibold text-lg shrink-0"></div>
+                    <div><h2 id="modalName" class="text-base font-semibold text-gray-900">ชื่อนักศึกษา</h2><p id="modalId" class="text-xs text-gray-500">รหัส</p></div>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full">✕</button>
+            </div>
+            
+            <div class="overflow-y-auto pb-4 text-sm flex-1">
+                <h3 class="font-medium text-gray-800 mb-2 mt-1">📊 สถิติการเข้าเรียน</h3>
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4">
+                    <div class="grid grid-cols-2 gap-3 text-center divide-x divide-gray-200">
+                        <div><p class="text-[10px] text-gray-500 mb-1">เฉพาะเดือนนี้</p><p class="text-xs text-gray-700">สาย <span id="statLateMonth" class="text-orange-600 font-semibold text-base">0</span> | ขาด <span id="statAbsentMonth" class="text-red-600 font-semibold text-base">0</span></p></div>
+                        <div><p class="text-[10px] text-gray-500 mb-1">รวมตลอดภาคเรียน</p><p class="text-xs text-gray-700">สาย <span id="statLateTotal" class="text-orange-600 font-semibold text-base">0</span> | ขาด <span id="statAbsentTotal" class="text-red-600 font-semibold text-base">0</span></p></div>
+                    </div>
+                </div>
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5">
+                    <div class="flex items-center gap-2 mb-2"><span class="text-blue-500">📱</span><span class="text-gray-600 w-24">เบอร์นักศึกษา:</span> <a id="modalPhone" href="#" class="font-medium text-gray-800"></a></div>
+                    <hr class="border-blue-200 my-2">
+                    <div class="flex items-center gap-2 mb-2"><span class="text-blue-500">👨‍👩‍👦</span><span class="text-gray-600 w-24">ผู้ปกครอง:</span> <span id="modalParent" class="font-medium text-gray-800"></span></div>
+                    <div class="flex items-center gap-2"><span class="text-blue-500">📞</span><span class="text-gray-600 w-24">เบอร์ติดต่อ:</span> <a id="modalParentPhone" href="#" class="font-medium text-indigo-600 underline"></a></div>
+                </div>
+                <h3 class="font-medium text-gray-800 mb-3">📝 เพิ่มบันทึกพฤติกรรม</h3>
+                <input type="hidden" id="behaviorStudentId"><input type="hidden" id="behaviorType" value="เชิงบวก">
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <button id="btnPositive" onclick="selectBehavior('เชิงบวก')" class="bg-green-50 border-2 border-green-400 rounded-xl p-2.5 text-xs font-medium text-green-700 transition">⭐ เชิงบวก</button>
+                    <button id="btnNegative" onclick="selectBehavior('เชิงลบ')" class="bg-white border-2 border-gray-200 rounded-xl p-2.5 text-xs font-medium text-gray-600 transition">⚠️ เชิงลบ</button>
+                </div>
+                <textarea id="behaviorDetail" rows="3" class="w-full border border-gray-300 rounded-xl p-3 text-sm mb-4 focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="ระบุรายละเอียดเพิ่มเติม..."></textarea>
+                <button onclick="submitBehavior()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-medium text-sm transition shadow-sm">บันทึกข้อมูลพฤติกรรม</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // 🔴 ลิงก์ API ของแอปอาจารย์
+        // 🔴 ลิงก์เชื่อมต่อฐานข้อมูล Google Apps Script
         const API_URL = "https://script.google.com/macros/s/AKfycbzQxwpYBq3LkGfaT65J4ROOX6lUqCxsTSq0vnjwOGD7unROlPsZ6j6dIiJue2VuaZ7T/exec";
+
+        let globalStudents = []; 
         
-        let allStudents = [];
-        let todayStr = new Date().toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        
-        // อัปเดตเวลาและวันที่
-        function updateClock() {
-            let now = new Date();
-            document.getElementById('headerDate').innerText = now.toLocaleDateString('th-TH', { dateStyle: 'full' });
-            document.getElementById('displayDate').innerText = now.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
-            document.getElementById('displayTime').innerText = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
-        }
-        setInterval(updateClock, 60000); updateClock();
+        window.onload = function() {
+            setDateTime();
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getStudentsData' })
+            }).then(r => r.json()).then(res => {
+                if(res.success) {
+                    renderData(res.data);
+                } else {
+                    document.getElementById('loadingText').innerText = "เกิดข้อผิดพลาด: " + res.message;
+                }
+            }).catch(err => {
+                document.getElementById('loadingText').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล";
+            });
+        };
 
-        // สลับหน้าจอ
-        function switchTab(tabName) {
-            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById('page-' + tabName).classList.add('active');
-            document.querySelector(`.nav-btn[data-target="page-${tabName}"]`).classList.add('active');
-        }
-
-        function showStatus(msg, isError = false) {
-            let statusEl = document.getElementById('statusMsg');
-            statusEl.innerText = msg;
-            statusEl.className = isError ? 'bg-red-100 text-red-800 text-xs text-center py-1 z-20 shadow-sm' : 'bg-yellow-100 text-yellow-800 text-xs text-center py-1 z-20 shadow-sm';
-            statusEl.classList.remove('hidden');
-            if(!isError && msg === "") statusEl.classList.add('hidden');
+        function setDateTime() {
+            const today = new Date(); const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            document.getElementById('displayDate').innerText = today.toLocaleDateString('th-TH', options);
+            let timeStr = today.getHours().toString().padStart(2, '0') + ':' + today.getMinutes().toString().padStart(2, '0') + ' น.';
+            document.getElementById('displayTime').innerText = timeStr;
         }
 
-        // โหลดข้อมูลนักศึกษา
-        async function loadData() {
-            showStatus("กำลังดึงข้อมูลรายชื่อและสถิติ...");
-            try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getStudentsData' }) });
-                let result = await res.json();
-                if(result.success) {
-                    allStudents = result.data;
-                    renderCheckInList();
-                    renderDashboardList();
-                    renderBehaviorDropdown();
-                    showStatus("");
-                } else { showStatus("โหลดข้อมูลล้มเหลว", true); }
-            } catch(e) { showStatus("ไม่สามารถเชื่อมต่อฐานข้อมูลได้", true); }
-        }
-
-        // วาดหน้าเช็คชื่อ
-        function renderCheckInList() {
-            let container = document.getElementById('studentListContainer');
-            document.getElementById('checkinCount').innerText = allStudents.length + ' คน';
-            container.innerHTML = '';
+        function renderData(data) {
+            globalStudents = data;
+            const attContainer = document.getElementById('attendanceListContainer'); const stuContainer = document.getElementById('studentCardContainer');
+            attContainer.innerHTML = ''; stuContainer.innerHTML = '';
             
-            allStudents.forEach((st, index) => {
-                let div = document.createElement('div');
-                div.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3";
-                div.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-medium text-gray-900 text-sm">${index+1}. ${st.name}</p>
-                            <p class="text-xs text-gray-500 mt-0.5">รหัส: ${st.id}</p>
+            data.forEach((student) => {
+                let firstChar = student.name.substring(0, 1) || '👤';
+                let avatarAttHtml = student.image 
+                    ? `<img src="${student.image}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0 shadow-sm">` 
+                    : `<div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium text-gray-600 shrink-0">${firstChar}</div>`;
+                let avatarCardHtml = student.image 
+                    ? `<img src="${student.image}" class="w-12 h-12 rounded-full object-cover mx-auto mb-2 border border-gray-200 shadow-sm shrink-0">` 
+                    : `<div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2 text-lg font-semibold shrink-0">${firstChar}</div>`;
+
+                let attHtml = `
+                    <div class="bg-white/95 p-3.5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div class="flex items-center gap-3">${avatarAttHtml}
+                            <div><p class="text-sm font-medium text-gray-800">${student.name}</p><p class="text-xs text-gray-400">รหัส: ${student.id}</p></div>
                         </div>
-                    </div>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button onclick="markStatus('${st.id}', '${st.name}', 'มาปกติ', this)" class="btn-status py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-700 transition">มาปกติ</button>
-                        <button onclick="markStatus('${st.id}', '${st.name}', 'มาสาย', this)" class="btn-status py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-orange-100 hover:text-orange-700 transition">สาย</button>
-                        <button onclick="markStatus('${st.id}', '${st.name}', 'ลา', this)" class="btn-status py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700 transition">ลา</button>
-                        <button onclick="markStatus('${st.id}', '${st.name}', 'ขาดเรียน', this)" class="btn-status py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700 transition">ขาด</button>
-                    </div>
-                `;
-                container.appendChild(div);
+                        <select id="status_${student.id}" class="bg-gray-50 border border-gray-200 text-sm rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 att-status">
+                            <option value="มาปกติ" selected>🟢 มาปกติ</option><option value="มาสาย">🟡 มาสาย</option><option value="ขาดเรียน">🔴 ขาดเรียน</option>
+                        </select>
+                    </div>`;
+                attContainer.innerHTML += attHtml;
+
+                let badgeHtml = '';
+                if(student.stats.lateTotal > 0 || student.stats.absentTotal > 0) {
+                    badgeHtml = `<div class="absolute top-2 right-2 flex flex-col gap-1 items-end z-10">
+                        ${student.stats.lateTotal > 0 ? `<span class="text-[9px] font-medium bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded shadow-sm">สาย ${student.stats.lateTotal}</span>` : ''}
+                        ${student.stats.absentTotal > 0 ? `<span class="text-[9px] font-medium bg-red-100 text-red-600 px-1.5 py-0.5 rounded shadow-sm">ขาด ${student.stats.absentTotal}</span>` : ''}
+                    </div>`;
+                }
+
+                let stuHtml = `
+                    <div onclick="openModal('${student.id}')" class="student-card bg-white/95 rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer hover:border-indigo-300 text-center relative overflow-hidden" data-name="${student.name}" data-id="${student.id}">
+                        ${badgeHtml}${avatarCardHtml}
+                        <h3 class="text-sm font-medium text-gray-800 line-clamp-1 mt-1">${student.name}</h3>
+                        <p class="text-xs text-gray-400 mt-1">${student.id}</p>
+                        ${student.major ? `<p class="text-[10px] text-indigo-500 mt-1 bg-indigo-50 inline-block px-2 rounded-full">${student.major}</p>` : ''}
+                    </div>`;
+                stuContainer.innerHTML += stuHtml;
             });
+            updateDashboardLocal(); document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        // บันทึกการเข้าเรียน
-        async function markStatus(id, name, status, btnElement) {
-            let parentDiv = btnElement.parentElement;
-            parentDiv.querySelectorAll('.btn-status').forEach(b => {
-                b.classList.remove('ring-2', 'ring-offset-1', 'bg-green-100', 'bg-orange-100', 'bg-blue-100', 'bg-red-100');
-                b.classList.add('bg-gray-100', 'text-gray-600');
-            });
+        function submitAttendance() {
+            showLoading("กำลังบันทึกการเช็กชื่อ..."); setDateTime(); 
+            const d = new Date(); const dateStr = [d.getDate().toString().padStart(2, '0'), (d.getMonth() + 1).toString().padStart(2, '0'), d.getFullYear()].join('/');
+            let totalToSave = globalStudents.length; let savedCount = 0;
 
-            btnElement.classList.remove('bg-gray-100', 'text-gray-600');
-            if(status === 'มาปกติ') btnElement.classList.add('bg-green-100', 'text-green-700', 'ring-2', 'ring-green-400');
-            if(status === 'มาสาย') btnElement.classList.add('bg-orange-100', 'text-orange-700', 'ring-2', 'ring-orange-400');
-            if(status === 'ลา') btnElement.classList.add('bg-blue-100', 'text-blue-700', 'ring-2', 'ring-blue-400');
-            if(status === 'ขาดเรียน') btnElement.classList.add('bg-red-100', 'text-red-700', 'ring-2', 'ring-red-400');
-
-            showStatus(`กำลังบันทึก: ${name} -> ${status}`);
-            try {
-                let res = await fetch(API_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: 'saveAttendanceRecord', date: todayStr, id: id, name: name, status: status }) 
+            globalStudents.forEach(student => {
+                let status = document.getElementById('status_' + student.id).value;
+                fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'saveAttendanceRecord', date: dateStr, id: student.id, name: student.name, status: status })
+                }).then(r => r.json()).then(res => {
+                    savedCount++;
+                    if(savedCount === totalToSave) {
+                        updateDashboardLocal(); hideLoading();
+                        alert('✅ บันทึกข้อมูลเรียบร้อยแล้ว'); switchTab('dashboard'); 
+                    }
                 });
-                let result = await res.json();
-                if(result.success) showStatus("");
-                else showStatus("บันทึกไม่สำเร็จ", true);
-            } catch(e) { showStatus("การเชื่อมต่อมีปัญหา", true); }
-        }
-
-        // วาดหน้า Dashboard
-        function renderDashboardList() {
-            document.getElementById('sumTotal').innerText = allStudents.length;
-            
-            let lateList = [], absentList = [];
-            allStudents.forEach(st => {
-                if(st.stats.lateMonth > 0) lateList.push(`${st.name} (${st.stats.lateMonth} ครั้ง)`);
-                if(st.stats.absentMonth > 0) absentList.push(`${st.name} (${st.stats.absentMonth} ครั้ง)`);
-            });
-
-            document.getElementById('listLate').innerHTML = lateList.length > 0 ? lateList.join('<br>') : '- ไม่มี -';
-            document.getElementById('listAbsent').innerHTML = absentList.length > 0 ? absentList.join('<br>') : '- ไม่มี -';
-            
-            // หมายเหตุ: สถิติ มาปกติ, สาย, ขาด ของ "วันนี้" จะต้องดึงข้อมูลแบบ Realtime ซึ่งใน Dashboard นี้จะโชว์ภาพรวมสรุปรายเดือนแทน
-        }
-
-        // จัดการ Dropdown พฤติกรรม
-        function renderBehaviorDropdown() {
-            let select = document.getElementById('behStudent');
-            select.innerHTML = '<option value="">-- เลือกรายชื่อนักศึกษา --</option>';
-            allStudents.forEach(st => {
-                let opt = document.createElement('option');
-                opt.value = st.id; opt.innerText = `${st.id} - ${st.name}`;
-                select.appendChild(opt);
             });
         }
 
-        // บันทึกพฤติกรรม
-        async function submitBehavior() {
-            let id = document.getElementById('behStudent').value;
-            let type = document.querySelector('input[name="behType"]:checked').value;
-            let detail = document.getElementById('behDetail').value;
-            let btn = document.getElementById('btnSubmitBeh');
+        function updateDashboardLocal() {
+            let selects = document.querySelectorAll('.att-status');
+            let present = 0, late = 0, absent = 0; let lateNames = [], absentNames = [];
 
-            if(!id || !detail) { alert("กรุณาเลือกนักศึกษาและกรอกรายละเอียดให้ครบถ้วน"); return; }
-
-            btn.innerText = "กำลังบันทึก..."; btn.disabled = true;
-            try {
-                let res = await fetch(API_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: 'saveBehaviorRecord', id: id, type: type, detail: detail }) 
-                });
-                let result = await res.json();
-                if(result.success) {
-                    alert("บันทึกพฤติกรรมสำเร็จ!");
-                    document.getElementById('behDetail').value = '';
-                    document.getElementById('behStudent').value = '';
-                } else alert("เกิดข้อผิดพลาด");
-            } catch(e) { alert("เครือข่ายมีปัญหา"); }
-            btn.innerHTML = "💾 บันทึกข้อมูล"; btn.disabled = false;
+            selects.forEach(sel => {
+                let id = sel.id.split('_')[1]; let student = globalStudents.find(s => s.id === id);
+                let displayName = `${student.id} ${student.name.split(' ')[0]}`; 
+                if(sel.value === 'มาปกติ') present++; else if(sel.value === 'มาสาย') { late++; lateNames.push(displayName); } else if(sel.value === 'ขาดเรียน') { absent++; absentNames.push(displayName); }
+            });
+            document.getElementById('sumTotal').innerText = globalStudents.length; document.getElementById('sumPresent').innerText = present;
+            document.getElementById('sumLate').innerText = late; document.getElementById('sumAbsent').innerText = absent;
+            document.getElementById('listLate').innerHTML = lateNames.length > 0 ? lateNames.map(n => `• ${n}`).join('<br>') : '- ไม่มี -';
+            document.getElementById('listAbsent').innerHTML = absentNames.length > 0 ? absentNames.map(n => `• ${n}`).join('<br>') : '- ไม่มี -';
         }
 
-        // บันทึกรูป Dashboard
+        function openModal(id) {
+            let student = globalStudents.find(s => s.id === id); if(!student) return;
+            let avatarContainer = document.getElementById('modalAvatar');
+            if(student.image) {
+                avatarContainer.innerHTML = `<img src="${student.image}" class="w-full h-full rounded-full object-cover">`;
+                avatarContainer.className = "w-12 h-12 rounded-full border border-gray-200 shrink-0 shadow-sm";
+            } else {
+                avatarContainer.innerHTML = student.name.substring(0, 1);
+                avatarContainer.className = "w-12 h-12 bg-indigo-100 text-indigo-500 rounded-full flex items-center justify-center font-semibold text-lg shrink-0";
+            }
+            document.getElementById('modalName').innerText = student.name; document.getElementById('modalId').innerText = 'รหัส: ' + student.id;
+            document.getElementById('modalPhone').innerText = student.phone || '- ไม่ระบุ -'; document.getElementById('modalPhone').href = 'tel:' + student.phone;
+            document.getElementById('modalParent').innerText = student.parent || '- ไม่ระบุ -'; document.getElementById('modalParentPhone').innerText = student.parentPhone || '- ไม่ระบุ -'; document.getElementById('modalParentPhone').href = 'tel:' + student.parentPhone;
+            document.getElementById('statLateMonth').innerText = student.stats.lateMonth; document.getElementById('statAbsentMonth').innerText = student.stats.absentMonth;
+            document.getElementById('statLateTotal').innerText = student.stats.lateTotal; document.getElementById('statAbsentTotal').innerText = student.stats.absentTotal;
+            document.getElementById('behaviorStudentId').value = student.id; document.getElementById('behaviorDetail').value = '';
+            selectBehavior('เชิงบวก'); document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('studentModal').classList.add('hidden'); }
+        
+        function selectBehavior(type) {
+            document.getElementById('behaviorType').value = type;
+            let btnPos = document.getElementById('btnPositive'); let btnNeg = document.getElementById('btnNegative');
+            if(type === 'เชิงบวก') {
+                btnPos.className = "bg-green-50 border-2 border-green-400 rounded-xl p-2.5 text-xs font-medium text-green-700 transition"; btnNeg.className = "bg-white border-2 border-gray-200 rounded-xl p-2.5 text-xs font-medium text-gray-600 transition";
+            } else {
+                btnPos.className = "bg-white border-2 border-gray-200 rounded-xl p-2.5 text-xs font-medium text-gray-600 transition"; btnNeg.className = "bg-red-50 border-2 border-red-400 rounded-xl p-2.5 text-xs font-medium text-red-700 transition";
+            }
+        }
+
+        function submitBehavior() {
+            let id = document.getElementById('behaviorStudentId').value; let type = document.getElementById('behaviorType').value; let detail = document.getElementById('behaviorDetail').value;
+            if(detail.trim() === '') { alert('กรุณาระบุรายละเอียดพฤติกรรม'); return; }
+            showLoading("กำลังบันทึกพฤติกรรม...");
+            
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'saveBehaviorRecord', id: id, type: type, detail: detail })
+            }).then(r => r.json()).then(res => {
+                hideLoading(); closeModal(); alert('✅ บันทึกพฤติกรรมสำเร็จ!');
+            }).catch(err => {
+                hideLoading(); alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+            });
+        }
+
+        function filterStudents() {
+            let input = document.getElementById('searchInput').value.toLowerCase(); let cards = document.querySelectorAll('.student-card');
+            cards.forEach(card => { let text = card.getAttribute('data-name').toLowerCase() + card.getAttribute('data-id'); card.style.display = text.includes(input) ? '' : 'none'; });
+        }
+
+        function switchTab(tabId) {
+            if(tabId === 'dashboard') updateDashboardLocal(); 
+            document.querySelectorAll('.page-section').forEach(page => page.classList.add('hidden'));
+            document.querySelectorAll('.absolute.bottom-0 button').forEach(btn => { btn.classList.remove('text-indigo-600'); btn.classList.add('text-gray-500'); });
+            document.getElementById('page-' + tabId).classList.remove('hidden');
+            document.getElementById('tab-' + tabId).classList.remove('text-gray-500'); document.getElementById('tab-' + tabId).classList.add('text-indigo-600');
+        }
+
         function saveAsImage() {
-            let target = document.getElementById("report-area");
-            let originalScale = target.style.transform;
-            target.style.transform = "scale(1)";
-            
-            html2canvas(target, { scale: 2, useCORS: true, backgroundColor: null }).then(canvas => {
-                let link = document.createElement('a');
-                link.download = `รายงานการเข้าเรียน_${todayStr.replace(/\//g, '-')}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-                target.style.transform = originalScale;
+            let element = document.getElementById('report-area');
+            html2canvas(element, { scale: 2, useCORS: true, backgroundColor: null }).then(canvas => {
+                let link = document.createElement('a'); link.download = 'รายงานเข้าเรียน_ผดุงเสนา.png'; link.href = canvas.toDataURL('image/png'); link.click();
             });
         }
 
-        // เริ่มต้นทำงาน
-        window.onload = () => { loadData(); };
+        function showLoading(text) { document.getElementById('loadingText').innerText = text; document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
 
-        // เปิดการทำงาน PWA Service Worker
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+        // เปิดการทำงาน Service Worker สำหรับติดตั้งแอปลงเครื่อง
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
     </script>
 </body>
 </html>
