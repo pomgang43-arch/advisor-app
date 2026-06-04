@@ -168,11 +168,9 @@
 
         let globalStudents = []; 
         
-        // 🔹 ฟังก์ชันทะลุระบบความปลอดภัย Google (เวอร์ชันปลอดภัย)
+        // 🔹 ฟังก์ชันเชื่อมต่อฐานข้อมูล Google Apps Script
         async function callAPI(payload) {
-            // ใช้การเติมรหัสเวลาต่อท้ายลิงก์ เพื่อหลอกไม่ให้จำ Cache แทนการใช้ Header
-            let safeUrl = API_URL + "?t=" + new Date().getTime();
-            let response = await fetch(safeUrl, {
+            let response = await fetch(API_URL, {
                 method: 'POST',
                 redirect: 'follow',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
