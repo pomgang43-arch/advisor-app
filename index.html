@@ -168,16 +168,14 @@
 
         let globalStudents = []; 
         
-        // 🔹 ฟังก์ชันเสริมสำหรับทะลุระบบความปลอดภัย Google และบังคับดึงข้อมูลใหม่เสมอ
+        // 🔹 ฟังก์ชันทะลุระบบความปลอดภัย Google (เวอร์ชันปลอดภัย)
         async function callAPI(payload) {
-            let response = await fetch(API_URL, {
+            // ใช้การเติมรหัสเวลาต่อท้ายลิงก์ เพื่อหลอกไม่ให้จำ Cache แทนการใช้ Header
+            let safeUrl = API_URL + "?t=" + new Date().getTime();
+            let response = await fetch(safeUrl, {
                 method: 'POST',
-                cache: 'no-store',      // 🔴 คำสั่งใหม่: บังคับไม่ให้แอปจำข้อมูลเก่า
                 redirect: 'follow',
-                headers: { 
-                    'Content-Type': 'text/plain;charset=utf-8',
-                    'Pragma': 'no-cache' // 🔴 คำสั่งใหม่: ย้ำอีกรอบว่าห้ามจำ
-                },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
             });
             return await response.json();
