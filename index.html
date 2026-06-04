@@ -248,27 +248,33 @@
             updateDashboardLocal(); document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        // 🔹 เปลี่ยนการส่งข้อมูลทีละคนแบบมีคิว เพื่อไม่ให้ Google บล็อกคำขอที่ส่งพร้อมกันเยอะเกินไป
+        // 🔹 เปลี่ยนการส่งข้อมูลเป็นแบบมัดรวม (Bulk Update) เร็วปรื๊ดใน 2 วินาที!
         async function submitAttendance() {
-            showLoading("กำลังบันทึกการเช็กชื่อ..."); setDateTime(); 
-            const d = new Date(); const dateStr = [d.getDate().toString().padStart(2, '0'), (d.getMonth() + 1).toString().padStart(2, '0'), d.getFullYear()].join('/');
-            let savedCount = 0;
-
+            showLoading("กำลังบันทึกข้อมูลทั้งห้อง..."); 
+            setDateTime(); 
+            const d = new Date(); 
+            const dateStr = [d.getDate().toString().padStart(2, '0'), (d.getMonth() + 1).toString().padStart(2, '0'), d.getFullYear()].join('/');
+            
+            // แพ็กข้อมูลเด็กทุกคนใส่กล่อง
+            let recordsData = [];
             for (let i = 0; i < globalStudents.length; i++) {
                 let student = globalStudents[i];
                 let status = document.getElementById('status_' + student.id).value;
-                try {
-                    await callAPI({ action: 'saveAttendanceRecord', date: dateStr, id: student.id, name: student.name, status: status });
-                    savedCount++;
-                } catch(e) { console.error("Error saving: ", e); }
+                recordsData.push({ id: student.id, name: student.name, status: status });
             }
 
-            hideLoading();
-            if(savedCount > 0) {
+            try {
+                // ส่งไปให้ Google รอบเดียวจบ!
+                await callAPI({ action: 'saveBulkAttendanceRecord', date: dateStr, records: recordsData });
+                
                 updateDashboardLocal(); 
-                alert('✅ บันทึกข้อมูลเรียบร้อยแล้ว'); switchTab('dashboard'); 
-            } else {
-                alert('เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่');
+                hideLoading();
+                alert('✅ บันทึกข้อมูลเรียบร้อยแล้ว'); 
+                switchTab('dashboard'); 
+            } catch(e) { 
+                console.error("Error saving: ", e);
+                hideLoading();
+                alert('เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่'); 
             }
         }
 
