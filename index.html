@@ -6,7 +6,7 @@
     <title>ระบบที่ปรึกษา - ผดุงเสนาบริหารธุรกิจ</title>
     
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/T31k1y70/images-(1).jpg">
+    <link class="apple-touch-icon" href="https://i.postimg.cc/T31k1y70/images-(1).jpg">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/T31k1y70/images-(1).jpg">
     
     <meta name="mobile-web-app-capable" content="yes">
@@ -22,10 +22,9 @@
     <style> 
         body { 
             font-family: 'Prompt', sans-serif; 
-            background-color: #d1d5db; /* 💻 สีพื้นหลังด้านนอกแอป */
+            background-color: #d1d5db; 
         } 
         
-        /* 📱 ภาพพื้นหลังเฉพาะในกรอบแอปมือถือ */
         .app-frame { 
             background-image: url('https://i.postimg.cc/qB5RCSQ3/wth.png'); 
             background-size: cover; 
@@ -55,7 +54,6 @@
         <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-nav relative z-10" id="main-content">
 
             <div id="page-dashboard" class="page-section">
-                
                 <div id="report-area" class="relative p-6 rounded-2xl shadow-sm border border-gray-100 overflow-hidden bg-cover bg-center" style="background-image: url('https://i.postimg.cc/qB5RCSQ3/wth.png');">
                     <div class="absolute inset-0 bg-white/85 backdrop-blur-sm"></div>
                     
@@ -92,7 +90,6 @@
                         <button onclick="exportToExcel()" class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-3.5 rounded-xl shadow-sm transition flex items-center justify-center gap-2 border border-green-500">
                             <span class="text-xl">📊</span> ส่งออกข้อมูลเป็นไฟล์ Excel
                         </button>
-
                     </div>
                 </div>
             </div>
@@ -137,7 +134,22 @@
             </div>
             
             <div class="overflow-y-auto pb-4 text-sm flex-1">
-                <h3 class="font-medium text-gray-800 mb-2 mt-1">📊 สถิติการเข้าเรียน</h3>
+                
+                <h3 class="font-medium text-gray-800 mb-2 mt-1">💳 สถานะการชำระค่าเทอม</h3>
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-4">
+                    <div class="grid grid-cols-2 gap-3 text-center divide-x divide-indigo-200">
+                        <div>
+                            <p class="text-[10px] text-gray-500 mb-0.5">ชำระแล้ว</p>
+                            <p class="text-sm font-bold text-green-600"><span id="modalFinancialPaid" class="text-base">0.00</span> ฿</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-500 mb-0.5">ยอดคงค้างปัจจุบัน</p>
+                            <p class="text-sm font-bold text-red-500"><span id="modalFinancialBalance" class="text-base">0.00</span> ฿</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="font-medium text-gray-800 mb-2 mt-4">📊 สถิติการเข้าเรียน</h3>
                 <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4">
                     <div class="grid grid-cols-2 gap-3 text-center divide-x divide-gray-200">
                         <div><p class="text-[10px] text-gray-500 mb-1">เฉพาะเดือนนี้</p><p class="text-xs text-gray-700">สาย <span id="statLateMonth" class="text-orange-600 font-semibold text-base">0</span> | ขาด <span id="statAbsentMonth" class="text-red-600 font-semibold text-base">0</span></p></div>
@@ -163,12 +175,11 @@
     </div>
 
     <script>
-        // 🔴 ลิงก์เชื่อมต่อฐานข้อมูล
+        // 🔴 อย่าลืมเปลี่ยน API_URL เป็นลิงก์ที่ Deploy ใหม่นะครับ
         const API_URL = "https://script.google.com/macros/s/AKfycbw3ibsPQiUQiRphWlVAywacAg8itEApGB0m2CBCWaQJmNU0hwY68hyVcvP_eCLO2w8j0g/exec";
 
         let globalStudents = []; 
         
-        // 🔹 ฟังก์ชันเสริมสำหรับเชื่อมต่อที่เสถียรและปลอดภัยขึ้น (หลีกเลี่ยงแอปค้าง)
         async function callAPI(payload) {
             let response = await fetch(API_URL, {
                 method: 'POST',
@@ -183,11 +194,8 @@
             setDateTime();
             callAPI({ action: 'getStudentsData' })
             .then(res => {
-                if(res.success) {
-                    renderData(res.data);
-                } else {
-                    document.getElementById('loadingText').innerText = "เกิดข้อผิดพลาด: " + res.message;
-                }
+                if(res.success) renderData(res.data);
+                else document.getElementById('loadingText').innerText = "เกิดข้อผิดพลาด: " + res.message;
             }).catch(err => {
                 document.getElementById('loadingText').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล";
             });
@@ -216,7 +224,6 @@
                     ? `<img src="${student.image}" class="w-12 h-12 rounded-full object-cover mx-auto mb-2 border border-gray-200 shadow-sm shrink-0" onerror="this.onerror=null; this.outerHTML='<div class=\\'w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2 text-lg font-semibold shrink-0\\'>${firstChar}</div>';">` 
                     : `<div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2 text-lg font-semibold shrink-0">${firstChar}</div>`;
 
-                // 🔹 ตรงนี้คือส่วนที่ดึงค่าของช่วงเช้ามาแสดงผลครับ
                 let selPresent = student.todayStatus === 'มาปกติ' ? 'selected' : '';
                 let selLate = student.todayStatus === 'มาสาย' ? 'selected' : '';
                 let selAbsent = student.todayStatus === 'ขาดเรียน' ? 'selected' : '';
@@ -254,14 +261,12 @@
             updateDashboardLocal(); document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        // 🔹 เปลี่ยนการส่งข้อมูลเป็นแบบมัดรวม (Bulk Update) เร็วปรื๊ดใน 2 วินาที!
         async function submitAttendance() {
             showLoading("กำลังบันทึกข้อมูลทั้งห้อง..."); 
             setDateTime(); 
             const d = new Date(); 
             const dateStr = [d.getDate().toString().padStart(2, '0'), (d.getMonth() + 1).toString().padStart(2, '0'), d.getFullYear()].join('/');
             
-            // แพ็กข้อมูลเด็กทุกคนใส่กล่อง
             let recordsData = [];
             for (let i = 0; i < globalStudents.length; i++) {
                 let student = globalStudents[i];
@@ -270,9 +275,7 @@
             }
 
             try {
-                // ส่งไปให้ Google รอบเดียวจบ!
                 await callAPI({ action: 'saveBulkAttendanceRecord', date: dateStr, records: recordsData });
-                
                 updateDashboardLocal(); 
                 hideLoading();
                 alert('✅ บันทึกข้อมูลเรียบร้อยแล้ว'); 
@@ -303,7 +306,6 @@
             let student = globalStudents.find(s => s.id === id); if(!student) return;
             let avatarContainer = document.getElementById('modalAvatar');
             if(student.image) {
-                // 🔹 ใส่ onerror ถ้าโหลดรูปไม่ขึ้นให้แสดงเป็นตัวย่อชื่อ
                 avatarContainer.innerHTML = `<img src="${student.image}" class="w-full h-full rounded-full object-cover" onerror="this.onerror=null; this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center bg-indigo-100 text-indigo-500 font-bold text-xl\\'>${student.name.substring(0, 1)}</div>';">`;
                 avatarContainer.className = "w-12 h-12 rounded-full border border-gray-200 shrink-0 shadow-sm overflow-hidden";
             } else {
@@ -315,6 +317,13 @@
             document.getElementById('modalParent').innerText = student.parent || '- ไม่ระบุ -'; document.getElementById('modalParentPhone').innerText = student.parentPhone || '- ไม่ระบุ -'; document.getElementById('modalParentPhone').href = 'tel:' + student.parentPhone;
             document.getElementById('statLateMonth').innerText = student.stats.lateMonth; document.getElementById('statAbsentMonth').innerText = student.stats.absentMonth;
             document.getElementById('statLateTotal').innerText = student.stats.lateTotal; document.getElementById('statAbsentTotal').innerText = student.stats.absentTotal;
+            
+            // 💳 อัปเดตข้อมูลการเงินใน Modal
+            let paidAmt = student.financial ? (parseFloat(student.financial.paid) || 0) : 0;
+            let balAmt = student.financial ? (parseFloat(student.financial.balance) || 0) : 0;
+            document.getElementById('modalFinancialPaid').innerText = paidAmt.toLocaleString('th-TH', {minimumFractionDigits: 2});
+            document.getElementById('modalFinancialBalance').innerText = balAmt.toLocaleString('th-TH', {minimumFractionDigits: 2});
+
             document.getElementById('behaviorStudentId').value = student.id; document.getElementById('behaviorDetail').value = '';
             selectBehavior('เชิงบวก'); document.getElementById('studentModal').classList.remove('hidden');
         }
@@ -331,7 +340,6 @@
             }
         }
 
-        // 🔹 เปลี่ยนมาใช้ callAPI เพื่อความเสถียร
         function submitBehavior() {
             let id = document.getElementById('behaviorStudentId').value; let type = document.getElementById('behaviorType').value; let detail = document.getElementById('behaviorDetail').value;
             if(detail.trim() === '') { alert('กรุณาระบุรายละเอียดพฤติกรรม'); return; }
@@ -368,7 +376,7 @@
         function showLoading(text) { document.getElementById('loadingText').innerText = text; document.getElementById('loadingOverlay').style.display = 'flex'; }
         function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
         
-        // ฟังก์ชันส่งออกไฟล์ Excel
+        // 📊 ฟังก์ชันส่งออกไฟล์ Excel (ส่งออกยอดเงินไปด้วย)
         function exportToExcel() {
             if (globalStudents.length === 0) {
                 alert("ยังโหลดข้อมูลไม่เสร็จ กรุณารอสักครู่...");
@@ -381,6 +389,9 @@
                 let statusSelect = document.getElementById('status_' + student.id);
                 let todayStatus = statusSelect ? statusSelect.value : 'มาปกติ';
                 
+                let paidAmt = student.financial ? (parseFloat(student.financial.paid) || 0) : 0;
+                let balAmt = student.financial ? (parseFloat(student.financial.balance) || 0) : 0;
+                
                 return {
                     "ลำดับ": index + 1,
                     "รหัสนักศึกษา": student.id,
@@ -390,6 +401,8 @@
                     "ขาด (เดือนนี้)": student.stats.absentMonth,
                     "รวมสาย (ทั้งหมด)": student.stats.lateTotal,
                     "รวมขาด (ทั้งหมด)": student.stats.absentTotal,
+                    "ชำระค่าเทอมแล้ว (บาท)": paidAmt,
+                    "ยอดคงค้างชำระ (บาท)": balAmt,
                     "เบอร์โทรนักศึกษา": student.phone || '-',
                     "ผู้ปกครอง": student.parent || '-',
                     "เบอร์โทรผู้ปกครอง": student.parentPhone || '-'
@@ -399,16 +412,15 @@
             setTimeout(() => {
                 let worksheet = XLSX.utils.json_to_sheet(exportData);
                 let workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "สถิติการเข้าเรียน");
+                XLSX.utils.book_append_sheet(workbook, worksheet, "สถิติการเข้าเรียนและการเงิน");
 
                 let dateStr = new Date().toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
-                XLSX.writeFile(workbook, `สถิติเข้าเรียน_ผดุงเสนา_${dateStr}.xlsx`);
+                XLSX.writeFile(workbook, `สรุปข้อมูลชั้นเรียน_${dateStr}.xlsx`);
                 
                 hideLoading();
             }, 500);
         }
 
-        // เปิดการทำงาน Service Worker สำหรับติดตั้งแอปลงเครื่อง
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
